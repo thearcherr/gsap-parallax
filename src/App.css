@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import 'lenis/dist/lenis.css';
+
+@font-face {
+    font-family: "Boska";
+    src: url('/fonts/Boska-Variable.ttf');
+}
+
+@font-face {
+    font-family: "Britney";
+    src: url('/fonts/Britney-Variable.ttf');
+}
+
+.font-boska {
+    font-family: "Boska";
+}
+
+.font-britney {
+    font-family: "Britney";
+}
+
+.intro-text {
+    font-family: "Boska";
+}
+
+.text-wrapper-clip {
+   /* clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);*/
+}
