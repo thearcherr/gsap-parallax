@@ -1,6 +1,4 @@
 import { useEffect, useState, useRef } from 'react' // Added useRef
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Lenis from 'lenis'
 import gsap from 'gsap'
@@ -11,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const loaderRef = useRef(null); // Reference for the loading screen
+  const loaderRef = useRef(null);
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -29,16 +27,13 @@ function App() {
             img.onerror = resolve;
         });
     })).then(() => {
-        // 1. Refresh GSAP first so the layout behind is correct
         ScrollTrigger.refresh();
 
-        // 2. Animate the loader opacity to 0
         gsap.to(loaderRef.current, {
             opacity: 0,
             duration: 1,
             ease: "power2.inOut",
             onComplete: () => {
-                // 3. Unmount it only after the animation finishes
                 setIsLoading(false);
             }
         });
@@ -47,7 +42,6 @@ function App() {
   }, []);
 
   useGSAP(() => {
-    // (GSAP Logic remains exactly the same as before)
     const side1_col = document.getElementsByClassName('side-1')[0];
     const side2_col = document.getElementsByClassName('side-2')[0];
     const side3_col = document.getElementsByClassName('side-3')[0];
@@ -140,13 +134,11 @@ function App() {
   return (
     <>
       {isLoading && (
-        // Added ref={loaderRef} here so GSAP can target it
         <div ref={loaderRef} className="fixed inset-0 z-[9999] flex items-center justify-center bg-red-600 text-white w-screen h-screen">
             <h1 className="text-4xl font-bold uppercase tracking-widest">Loading...</h1>
         </div>
       )}
 
-      {/* Main Content */}
       <section className="fixed top-0 left-0 w-full h-screen -z-30 flex items-center justify-center overflow-hidden transform-[scale(1.25)]">
         <div className="gallery-wrapper flex flex-row gap-10 bg-black">
           <div className="flex flex-col will-change-transform gap-10 side-1">
