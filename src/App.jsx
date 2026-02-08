@@ -10,25 +10,36 @@ import { useGSAP } from '@gsap/react'
 gsap.registerPlugin(ScrollTrigger)
 
 function App() {
+  // 1. State for the loading screen
+  const [isLoading, setIsLoading] = useState(true);
 
-useEffect(() => {
-// Initialize a new Lenis instance for smooth scrolling
-const lenis = new Lenis();
+  useEffect(() => {
+    const lenis = new Lenis();
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0);
 
-// Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin
-lenis.on('scroll', ScrollTrigger.update);
+    // 2. Check if all images are loaded
+    const imgs = Array.from(document.images);
+    Promise.all(imgs.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve; // Continue even if an image breaks
+        });
+    })).then(() => {
+        setIsLoading(false);
+        // 3. Recalculate GSAP positions now that images have height
+        ScrollTrigger.refresh(); 
+    });
 
-// Add Lenis's requestAnimationFrame (raf) method to GSAP's ticker
-// This ensures Lenis's smooth scroll animation updates on each GSAP tick
-gsap.ticker.add((time) => {
-  lenis.raf(time * 1000); // Convert time from seconds to milliseconds
-});
+  }, []);
 
-// Disable lag smoothing in GSAP to prevent any delay in scroll animations
-gsap.ticker.lagSmoothing(0);
-}, []);
-
-useGSAP(() => {
+  useGSAP(() => {
+    // Only run GSAP logic if we aren't loading, or keep it running behind
+    // (Existing GSAP logic remains exactly the same)
     const side1_col = document.getElementsByClassName('side-1')[0];
     const side2_col = document.getElementsByClassName('side-2')[0];
     const side3_col = document.getElementsByClassName('side-3')[0];
@@ -107,20 +118,28 @@ useGSAP(() => {
     }, 0);
 
     tl.to(".scaling-img-wrapper", {
-  aspectRatio: "16 / 9",
-  ease: "power2.inOut",
-  scrollTrigger: {
-    trigger: ".ws",
-    start: "top bottom",
-    end: "center center",
-    scrub: true,
-  }
-}, 0);
+      aspectRatio: "16 / 9",
+      ease: "power2.inOut",
+      scrollTrigger: {
+        trigger: ".ws",
+        start: "top bottom",
+        end: "center center",
+        scrub: true,
+      }
+    }, 0);
     
-})
+  })
 
   return (
     <>
+      {/* 4. The Loading Screen Markup */}
+      {isLoading && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-red-600 text-white w-screen h-screen">
+            <h1 className="text-4xl font-bold uppercase tracking-widest">Loading...</h1>
+        </div>
+      )}
+
+      {/* Rest of your JSX remains untouched */}
       <section className="fixed top-0 left-0 w-full h-screen -z-30 flex items-center justify-center overflow-hidden transform-[scale(1.25)]">
         <div className="gallery-wrapper flex flex-row gap-10 bg-black">
           <div className="flex flex-col will-change-transform gap-10 side-1">
@@ -135,7 +154,6 @@ useGSAP(() => {
           </div>
           <div className="flex flex-col will-change-transform gap-10 main z-50">
             <img src="/images/pin-7.jpg" alt="Image 1" className="img overflow-hidden w-50.5 h-50.5 object-cover" />
-            {/* <img src="/images/hero.png" alt="Image 1" className="img scaling-img overflow-hidden w-50.5 h-50.5 object-cover" /> */}
             <div className="w-50.5 h-50.5 bg-transparent"></div>
             <img src="/images/pin-9.jpg" alt="Image 1" className="img overflow-hidden w-50.5 h-50.5 object-cover" />
           </div>
@@ -160,11 +178,11 @@ useGSAP(() => {
         />
       </div>
 
-          <div className="container z-50 h-full w-screen m-0 p-0 overflow-x-hidden min-w-full">
+      <div className="container z-50 h-full w-screen m-0 p-0 overflow-x-hidden min-w-full">
           <div className="hero z-50 h-screen w-screen flex items-center justify-center">
-          <div className="hero-img z-50 overflow-hidden w-full h-full">
-            <img className='w-full h-full object-cover z-50' src="/images/hero.png" alt="Hero" />
-          </div>
+            <div className="hero-img z-50 overflow-hidden w-full h-full">
+                <img className='w-full h-full object-cover z-50' src="/images/hero.png" alt="Hero" />
+            </div>
         </div>
         <div className="intro z-50 bg-[#dcd4c0] h-screen w-screen flex flex-col will-change-transform gap-10 items-center justify-items-center">
           <h1 className="text-8xl font-boska text-red-700 mx-auto my-auto">unbounded</h1>
