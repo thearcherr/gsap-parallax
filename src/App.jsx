@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react' // Added useRef
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -10,8 +10,8 @@ import { useGSAP } from '@gsap/react'
 gsap.registerPlugin(ScrollTrigger)
 
 function App() {
-  // 1. State for the loading screen
   const [isLoading, setIsLoading] = useState(true);
+  const loaderRef = useRef(null); // Reference for the loading screen
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -21,25 +21,33 @@ function App() {
     });
     gsap.ticker.lagSmoothing(0);
 
-    // 2. Check if all images are loaded
     const imgs = Array.from(document.images);
     Promise.all(imgs.map(img => {
         if (img.complete) return Promise.resolve();
         return new Promise(resolve => {
             img.onload = resolve;
-            img.onerror = resolve; // Continue even if an image breaks
+            img.onerror = resolve;
         });
     })).then(() => {
-        setIsLoading(false);
-        // 3. Recalculate GSAP positions now that images have height
-        ScrollTrigger.refresh(); 
+        // 1. Refresh GSAP first so the layout behind is correct
+        ScrollTrigger.refresh();
+
+        // 2. Animate the loader opacity to 0
+        gsap.to(loaderRef.current, {
+            opacity: 0,
+            duration: 1,
+            ease: "power2.inOut",
+            onComplete: () => {
+                // 3. Unmount it only after the animation finishes
+                setIsLoading(false);
+            }
+        });
     });
 
   }, []);
 
   useGSAP(() => {
-    // Only run GSAP logic if we aren't loading, or keep it running behind
-    // (Existing GSAP logic remains exactly the same)
+    // (GSAP Logic remains exactly the same as before)
     const side1_col = document.getElementsByClassName('side-1')[0];
     const side2_col = document.getElementsByClassName('side-2')[0];
     const side3_col = document.getElementsByClassName('side-3')[0];
@@ -127,19 +135,18 @@ function App() {
         scrub: true,
       }
     }, 0);
-    
   })
 
   return (
     <>
-      {/* 4. The Loading Screen Markup */}
       {isLoading && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-red-600 text-white w-screen h-screen">
+        // Added ref={loaderRef} here so GSAP can target it
+        <div ref={loaderRef} className="fixed inset-0 z-[9999] flex items-center justify-center bg-red-600 text-white w-screen h-screen">
             <h1 className="text-4xl font-bold uppercase tracking-widest">Loading...</h1>
         </div>
       )}
 
-      {/* Rest of your JSX remains untouched */}
+      {/* Main Content */}
       <section className="fixed top-0 left-0 w-full h-screen -z-30 flex items-center justify-center overflow-hidden transform-[scale(1.25)]">
         <div className="gallery-wrapper flex flex-row gap-10 bg-black">
           <div className="flex flex-col will-change-transform gap-10 side-1">
